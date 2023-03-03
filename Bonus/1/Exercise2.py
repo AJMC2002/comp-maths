@@ -1,6 +1,7 @@
+# from pandas import DataFrame # Used in line 59
 from math import pi, sin, factorial as fact
 from collections import defaultdict
-from pandas import DataFrame
+import json
 
 
 class Exercise2:
@@ -47,11 +48,12 @@ class Exercise2:
             approx = self.__taylor_sin(x_i, d_i, sigdig_i)
             real = round(sin(x_i), sigdig_i)
             err = abs(real - approx)
-            rel_err = round(err / real, 2) * 100
+            rel_err = round(err / real, sigdig_i) * 100
 
             results["x"].append(x_i)
             results["Taylor sin(x)"].append(approx)
             results["sin(x)"].append(real)
             results["Absolute error"].append(err)
-            results["Relative error"].append(rel_err)
-        print(DataFrame(results))
+            results["Relative error (%)"].append(rel_err)
+        print(json.dumps(results, indent=4))
+        # print(DataFrame(results)) # Non-preserving of significant digits
