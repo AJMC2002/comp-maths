@@ -1,4 +1,6 @@
 from math import pi, sin, factorial as fact
+from collections import defaultdict
+from pandas import DataFrame
 
 
 class Exercise2:
@@ -22,24 +24,34 @@ class Exercise2:
     def __init__(self) -> None:
         self.x = [0.5236, 52.36]
         self.d = [10**-4, 10**-8]
-        self.sigdig = 4
-        self.pi = round(pi, self.sigdig)
+        self.sigdig = [4, 8]
 
-    def __taylor_sin(self, x: float, d: float) -> float:
+    def __taylor_sin(self, x: float, d: float, sigdig: int) -> float:
         if x < 0:
-            return self.__taylor_sin(-x, d)
+            return self.__taylor_sin(-x, d, sigdig)
         elif x >= 2 * pi:
-            return self.__taylor_sin(x - 2 * self.pi, d)
+            return self.__taylor_sin(x - 2 * round(pi, sigdig), d, sigdig)
         sin_x = 0.0
         i = 0
         while True:
             term: float = x ** (2 * i + 1) / fact(2 * i + 1)
             if term <= d:
                 break
-            sin_x += round((-1) ** (i % 2) * term, self.sigdig)
+            sin_x += (-1) ** (i % 2) * term
             i += 1
-        return round(sin_x, self.sigdig)
+        return round(sin_x, sigdig)
 
     def solve(self) -> None:
-        for x_i, d_i in zip(self.x, self.d):
-            print(self.__taylor_sin(x_i, d_i))
+        results = defaultdict(list)
+        for x_i, d_i, sigdig_i in zip(self.x, self.d, self.sigdig):
+            approx = self.__taylor_sin(x_i, d_i, sigdig_i)
+            real = round(sin(x_i), sigdig_i)
+            err = abs(real - approx)
+            rel_err = round(err / real, 2) * 100
+
+            results["x"].append(x_i)
+            results["Taylor sin(x)"].append(approx)
+            results["sin(x)"].append(real)
+            results["Absolute error"].append(err)
+            results["Relative error"].append(rel_err)
+        print(DataFrame(results))

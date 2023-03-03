@@ -3,7 +3,7 @@ from Exercise2 import Exercise2
 
 
 def main():
-    # Exercise1().solve()
+    Exercise1().solve()
     Exercise2().solve()
 
 
