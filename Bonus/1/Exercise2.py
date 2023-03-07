@@ -32,26 +32,29 @@ class Exercise2:
             return self.__taylor_sin(-x, d, sigdig)
         elif x >= 2 * pi:
             return self.__taylor_sin(x - 2 * round(pi, sigdig), d, sigdig)
+        terms: list[float] = []
         sin_x = 0.0
         i = 0
         while True:
             term: float = x ** (2 * i + 1) / fact(2 * i + 1)
             if term <= d:
                 break
+            terms.append((-1) ** (i % 2) * term)
             sin_x += (-1) ** (i % 2) * term
             i += 1
-        return round(sin_x, sigdig)
+        return terms, round(sin_x, sigdig)
 
     def solve(self) -> None:
         results = defaultdict(list)
         for x_i, d_i, sigdig_i in zip(self.x, self.d, self.sigdig):
-            approx = self.__taylor_sin(x_i, d_i, sigdig_i)
+            approx_terms, approx = self.__taylor_sin(x_i, d_i, sigdig_i)
             real = round(sin(x_i), sigdig_i)
             err = abs(real - approx)
             rel_err = round(err / real, sigdig_i) * 100
 
             results["x"].append(x_i)
             results["Taylor sin(x)"].append(approx)
+            results["Taylor terms"].append(approx_terms)
             results["sin(x)"].append(real)
             results["Absolute error"].append(err)
             results["Relative error (%)"].append(rel_err)
