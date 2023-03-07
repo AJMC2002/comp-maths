@@ -40,6 +40,12 @@ class Exercise1:
             [0] * 19 + [-(10**-7)]
         )  # error in coeff of x ** 19 = - 10 ** -7
         p = w + e
+        
+        print("w(x) roots")
+        print(*w.roots())
+        print()
+        print("p(x) roots")
+        print(*p.roots())
 
         plt.figure(1)
         plt.title("Графики для $w(x)$ и $p(x)$")
