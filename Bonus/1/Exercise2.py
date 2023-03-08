@@ -1,4 +1,4 @@
-# from pandas import DataFrame # Used in line 62
+# from pandas import DataFrame # Used in line 65
 from math import pi, sin, factorial as fact
 from collections import defaultdict
 import json
@@ -28,6 +28,9 @@ class Exercise2:
         self.sigdig = [4, 8]
 
     def __taylor_sin(self, x: float, d: float, sigdig: int) -> float:
+        """
+        TODO: Could be made a generator
+        """
         if x < 0:
             return self.__taylor_sin(-x, d, sigdig)
         elif x >= 2 * pi:
