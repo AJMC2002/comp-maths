@@ -114,7 +114,7 @@ fn R(n: &u32, [a, b]: &[f64; 2], x: &f64) -> Result<f64, String> {
         return Err("B O I, 'a' is strictly less than 'b'.".to_string());
     }
 
-    let mut r = match n_th_derivative(n, x) {
+    let mut r = match n_th_derivative(*n + 1, x) {
         Ok(it) => it.abs(),
         Err(err) => return Err(err),
     };
@@ -126,8 +126,8 @@ fn R(n: &u32, [a, b]: &[f64; 2], x: &f64) -> Result<f64, String> {
 }
 
 /// Gets the value of the n-th derivative of y = x^2+log(x) (log in base 10)
-fn n_th_derivative(n: &u32, x: &f64) -> Result<f64, String> {
-    if *n < 1 {
+fn n_th_derivative(n: u32, x: &f64) -> Result<f64, String> {
+    if n < 1 {
         return Err("Are you stupid? Only n >= 1.".to_string());
     }
 
@@ -135,19 +135,19 @@ fn n_th_derivative(n: &u32, x: &f64) -> Result<f64, String> {
     let mut result = 1.0_f64 / 10.0_f64.ln();
     // n-th derivative of ln(x)=(n-1)!(-1)^(n-1)/x^n
     // We get the absolute value
-    if *n == 1 {
+    if n == 1 {
         result /= *x;
     } else {
-        for k in 1..(*n) {
+        for k in 1..(n) {
             result *= k as f64 / *x;
         }
     }
     // Add sign
-    if *n % 2 == 0 {
+    if n % 2 == 0 {
         result *= -1.0_f64;
     }
     // Add n-th derivative of x^2
-    match *n {
+    match n {
         1 => Ok(2.0_f64 * *x + result),
         2 => Ok(2.0_f64 + result),
         _ => Ok(result),
