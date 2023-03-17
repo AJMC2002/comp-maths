@@ -5,13 +5,48 @@
 // | |  | \ \_/ /\__/ / |\  \_| |_
 // \_|  |_/\___/\____/\_| \_/\___/
 
-use std::fs::File;
+use csv::Writer;
+use std::{error::Error, fs::File};
 
 /// This generates the CSV data of the Lagrange interpolation for Python to use ;)
-fn main() {
-    let file = File::open("../../data/input/data.json").unwrap();
-    let json: serde_json::Value = serde_json::from_reader(file).unwrap();
-    println!("{:?}", json["x_values"].as_array())
+fn main() -> Result<(), Box<dyn Error>> {
+    let data_dir = "../data/";
+    let fin = File::open(data_dir.to_owned() + "input/data.json").expect("File not found.");
+    let json: serde_json::Value = serde_json::from_reader(fin)?;
+
+    let n_values_json = json.get("n_values").unwrap();
+    let x_interval_json = json.get("x_interval").unwrap();
+    let x_values_json = json.get("x_values").unwrap();
+
+    let n_values: Vec<u32> = serde_json::from_value(n_values_json.clone())?;
+    let x_interval: [f64; 2] = serde_json::from_value(x_interval_json.clone())?;
+    let x_values: Vec<f64> = serde_json::from_value(x_values_json.clone())?;
+
+    for x in x_values.iter() {
+        let fout_path = format!("{}output/x_{}.csv", data_dir, *x);
+        let fout = File::create(fout_path).expect("Failed to create file.");
+        let mut writer = Writer::from_writer(fout);
+
+        writer.write_record(&["n", "AbsErr", "RelErr", "R"])?;
+
+        for n in n_values.iter() {
+            let f = f(x);
+            let l_n = L(n, &x_interval, x)?;
+            let abs_err_n = abs_err(&f, &l_n);
+            let rel_err_n = rel_err(&f, &l_n);
+            let r_n = R(n, &x_interval, x)?;
+
+            writer.write_record(&[
+                (*n).to_string(),
+                abs_err_n.to_string(),
+                rel_err_n.to_string(),
+                r_n.to_string(),
+            ])?;
+        }
+
+        writer.flush()?;
+    }
+    Ok(())
 }
 
 /// Evaluates f(x) = x^2+log(x) (log in base 10) at x
@@ -20,6 +55,7 @@ fn f(x: &f64) -> f64 {
 }
 
 /// Evaluates the n-th lagrange polynomial at x
+#[allow(non_snake_case)]
 fn L(n: &u32, [a, b]: &[f64; 2], x: &f64) -> Result<f64, String> {
     if *a >= *b {
         return Err("B O I, a is strictly less than b.".to_string());
@@ -36,35 +72,37 @@ fn L(n: &u32, [a, b]: &[f64; 2], x: &f64) -> Result<f64, String> {
 }
 
 /// Evaluates the i-th term for the n-th Lagrange polynomial at x
+#[allow(non_snake_case)]
 fn Li(i: u32, n: &u32, x_0: &f64, dx: &f64, x: &f64) -> f64 {
     let mut li = 1.0_f64;
     for j in 0..(*n) {
         if j != i {
             li *= *x - (*x_0 + (j as f64) * *dx);
-            li /= (i - j) as f64 * *dx;
+            li /= (i as i32 - j as i32) as f64 * *dx;
         }
     }
     li
 }
 
 /// Obtain absolute error between f and L
-fn abs_err(f: &f64, L_n: &f64) -> f64 {
-    (*f - *L_n).abs()
+fn abs_err(f: &f64, l_n: &f64) -> f64 {
+    (*f - *l_n).abs()
 }
 
 /// Obtain relative error between f and L
-fn rel_err(f: &f64, L_n: &f64) -> f64 {
-    abs_err(f, L_n) / f.abs() * 100.0_f64
+fn rel_err(f: &f64, l_n: &f64) -> f64 {
+    abs_err(f, l_n) / f.abs() * 100.0_f64
 }
 
 /// Obtain the upper bound of the error
+#[allow(non_snake_case)]
 fn R(n: &u32, [a, b]: &[f64; 2], x: &f64) -> Result<f64, String> {
     if *a >= *b {
-        return Err("B O I, a is strictly less than b.".to_string());
+        return Err("B O I, 'a' is strictly less than 'b'.".to_string());
     }
 
     let mut r = match n_th_derivative(n, x) {
-        Ok(it) => it,
+        Ok(it) => it.abs(),
         Err(err) => return Err(err),
     };
     for k in 1..=*n + 1 {

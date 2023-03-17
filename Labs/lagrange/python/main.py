@@ -11,16 +11,26 @@ And get the info placed in a CSV if ran successfully
 """
 
 import subprocess
+from matplotlib import pyplot as plt
 
-proc = subprocess.Popen(
-    ["cargo", "run"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-)
 
-stdout, stderr = proc.communicate()
+def gen_data():
+    """
+    Runs the rust project in ./rust/ with cargo to generate data in ./data/output/
+    """
+    proc = subprocess.Popen(
+        ["cargo", "run", "--manifest-path", "../rust/Cargo.toml"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
 
-if proc.returncode != 0:
-    print(f"Fuck you, here's an error: {stderr.decode()}")
-else:
-    print(stdout.decode())
+    stdout, stderr = proc.communicate()
+
+    if proc.returncode != 0:
+        print(f"Fuck you, here's an error: {stderr.decode()}")
+    else:
+        print(stdout.decode())
+
+
 
 # TODO
