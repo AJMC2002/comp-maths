@@ -6,12 +6,19 @@
 // \_|  |_/\___/\____/\_| \_/\___/
 
 use csv::Writer;
-use std::{error::Error, fs::File};
+use std::{
+    error::Error,
+    fs::{self, File},
+};
+
+const DATA_DIR: &str = "data"; // if running from ./rust then use "../data"
 
 /// This generates the CSV data of the Lagrange interpolation for Python to use ;)
 fn main() -> Result<(), Box<dyn Error>> {
-    let data_dir = "../data/";
-    let fin = File::open(data_dir.to_owned() + "input/data.json").expect("File not found.");
+    let dirin_path = format!("{}/input", DATA_DIR);
+    let fin_path = format!("{}/data.json", dirin_path);
+    let fin = File::open(fin_path).expect("File not found.");
+
     let json: serde_json::Value = serde_json::from_reader(fin)?;
 
     let n_values_json = json.get("n_values").unwrap();
@@ -23,10 +30,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let x_values: Vec<f64> = serde_json::from_value(x_values_json.clone())?;
 
     for x in x_values.iter() {
-        let fout_path = format!("{}output/x_{}.csv", data_dir, *x);
+        let dirout_path = format!("{}/output", DATA_DIR);
+        fs::create_dir_all(&dirout_path)?;
+        let fout_path = format!("{}/x_{}.csv", dirout_path, *x);
         let fout = File::create(fout_path).expect("Failed to create file.");
+
         let mut writer = Writer::from_writer(fout);
 
+        // CSV header
         writer.write_record(&["n", "AbsErr", "RelErr", "R"])?;
 
         for n in n_values.iter() {
@@ -44,8 +55,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             ])?;
         }
 
+        // Make sure this iteration is written :3
         writer.flush()?;
     }
+
     Ok(())
 }
 

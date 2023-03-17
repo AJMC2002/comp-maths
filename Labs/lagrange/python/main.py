@@ -14,12 +14,12 @@ import subprocess
 from matplotlib import pyplot as plt
 
 
-def gen_data():
+def gen_data() -> None:
     """
     Runs the rust project in ./rust/ with cargo to generate data in ./data/output/
     """
     proc = subprocess.Popen(
-        ["cargo", "run", "--manifest-path", "../rust/Cargo.toml"],
+        ["cargo", "run", "--manifest-path", "./rust/Cargo.toml"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
@@ -27,10 +27,7 @@ def gen_data():
     stdout, stderr = proc.communicate()
 
     if proc.returncode != 0:
-        print(f"Fuck you, here's an error: {stderr.decode()}")
-    else:
-        print(stdout.decode())
+        raise ChildProcessError(f"Fuck you, here's an error:\n{stderr.decode()}")
 
+    print(stdout.decode())
 
-
-# TODO

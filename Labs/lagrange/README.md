@@ -22,4 +22,6 @@ Do an analysis and graphical representation of the error of an interpolation usi
 
 ## Usage
 
-Run `./python/main.py` and check the results in `./data/`.
+Run `py ./python/main.py` and check the results in `./data/output`.
+
+> _Warning:_ Change the `DATA_DIR` constant as specified in the `main.rs` file if you run `cargo run` in `./rust`
