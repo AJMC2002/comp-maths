@@ -27,12 +27,14 @@ def gen_data() -> None:
         stderr=subprocess.PIPE,
     )
 
-    _, stderr = proc.communicate()
+    stdout, stderr = proc.communicate()
 
     if proc.returncode != 0:
         raise ChildProcessError(f"Fuck you, here's an error:\n{stderr.decode()}")
 
-    print(f"Rust code run successfully!")
+    print("Rust code run successfully!")
+    if stdout.decode():
+        print(stdout.decode())
 
 
 if __name__ == "__main__":

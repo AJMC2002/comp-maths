@@ -6,6 +6,7 @@
 // \_|  |_/\___/\____/\_| \_/\___/
 
 use csv::Writer;
+use ndarray::Array1;
 use std::{
     error::Error,
     fs::{self, File},
@@ -29,9 +30,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let x_interval: [f64; 2] = serde_json::from_value(x_interval_json.clone())?;
     let x_values: Vec<f64> = serde_json::from_value(x_values_json.clone())?;
 
+    let dirout_path = format!("{}/output", DATA_DIR);
+    fs::create_dir_all(&dirout_path)?;
+
     for x in x_values.iter() {
-        let dirout_path = format!("{}/output", DATA_DIR);
-        fs::create_dir_all(&dirout_path)?;
         let fout_path = format!("{}/x_{}.csv", dirout_path, *x);
         let fout = File::create(fout_path).expect("Failed to create file.");
 
@@ -74,24 +76,21 @@ fn L(n: &u32, [a, b]: &[f64; 2], x: &f64) -> Result<f64, String> {
         return Err("B O I, a is strictly less than b.".to_string());
     }
 
-    let x_0 = *a;
-    let dx = (*b - *a) / (*n as f64);
-
-    let mut l = 0.0_f64;
+    let linspace: Array1<f64> = Array1::linspace(*a, *b, *n as usize);
+    let mut l = 0.0;
     for i in 0..*n {
-        l += f(&(x_0 + (i as f64) * dx)) * Li(i, n, &x_0, &dx, x);
+        l += f(&linspace[i as usize]) * Li(n, i, &linspace, x);
     }
     Ok(l)
 }
 
 /// Evaluates the i-th term for the n-th Lagrange polynomial at x
 #[allow(non_snake_case)]
-fn Li(i: u32, n: &u32, x_0: &f64, dx: &f64, x: &f64) -> f64 {
-    let mut li = 1.0_f64;
-    for j in 0..(*n) {
+fn Li(n: &u32, i: u32, linspace: &Array1<f64>, x: &f64) -> f64 {
+    let mut li = 1.0;
+    for j in 0..*n {
         if j != i {
-            li *= *x - (*x_0 + (j as f64) * *dx);
-            li /= (i as i32 - j as i32) as f64 * *dx;
+            li *= (*x - linspace[j as usize]) / (linspace[i as usize] - linspace[j as usize]);
         }
     }
     li
@@ -104,47 +103,24 @@ fn abs_err(f: &f64, l_n: &f64) -> f64 {
 
 /// Obtain relative error between f and L
 fn rel_err(f: &f64, l_n: &f64) -> f64 {
-    abs_err(f, l_n) / f.abs() * 100.0_f64
+    abs_err(f, l_n) / f.abs() * 100.0
 }
 
 /// Obtain the upper bound of the error
 #[allow(non_snake_case)]
 fn R(n: &u32, [a, b]: &[f64; 2], x: &f64) -> Result<f64, String> {
     if *a >= *b {
-        return Err("B O I, 'a' is strictly less than 'b'.".to_string());
+        return Err("B O I, 'a' should be strictly less than 'b'.".to_string());
     }
 
-    let mut r = n_th_derivative(*n + 1, x)?.abs();
-
-    for k in 1..=*n + 1 {
-        r *= *b - *a;
-        r /= k as f64;
-    }
+    // First add the term for x^2
+    let mut r = match *n {
+        0 => 2.0 * x.abs() * (*b - *a),
+        1 => 2.0 * (*b - *a).powi(2) / 2.0,
+        _ => 0.0,
+    };
+    // Add the term for log(x) = ln(x) / ln(10)
+    r += ((*b - *a) / *x).powi(*n as i32 + 1) / (10.0_f64.ln() * (*n + 1) as f64);
 
     Ok(r)
-}
-
-/// Gets the value of the n-th derivative of y = x^2+log(x) (log in base 10)
-fn n_th_derivative(n: u32, x: &f64) -> Result<f64, String> {
-    if n < 1 {
-        return Err("Are you stupid? Only n >= 1.".to_string());
-    }
-
-    // Consider log(x) = ln(x)/ln(10)
-    let mut result = 1.0_f64 / 10.0_f64.ln();
-    // n-th derivative of ln(x)=(n-1)!(-1)^(n-1)/x^n
-    result /= *x;
-    for k in 1..n {
-        result *= k as f64 / *x;
-    }
-    // Add sign
-    if n % 2 == 0 {
-        result *= -1.0_f64;
-    }
-    // Add n-th derivative of x^2
-    match n {
-        1 => Ok(2.0_f64 * *x + result),
-        2 => Ok(2.0_f64 + result),
-        _ => Ok(result),
-    }
 }
