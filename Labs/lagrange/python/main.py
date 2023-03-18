@@ -13,6 +13,7 @@ And get the info placed in a CSV if ran successfully
 import json
 import subprocess
 import pandas as pd
+from tabulate import tabulate
 from matplotlib import pyplot as plt
 
 
@@ -26,12 +27,12 @@ def gen_data() -> None:
         stderr=subprocess.PIPE,
     )
 
-    stdout, stderr = proc.communicate()
+    _, stderr = proc.communicate()
 
     if proc.returncode != 0:
         raise ChildProcessError(f"Fuck you, here's an error:\n{stderr.decode()}")
 
-    print(stdout.decode())
+    print(f"Rust code run successfully!")
 
 
 if __name__ == "__main__":
@@ -58,6 +59,17 @@ if __name__ == "__main__":
 
         for x in data["x_values"]:
             df = pd.read_csv(f"{DATA_DIR}/output/x_{x}.csv")
+
+            # Pretty format the csv ;3
+            with open(f"{DATA_DIR}/output/x_{x}.txt", "w", encoding="utf-8") as f:
+                f.write(
+                    tabulate(
+                        df,
+                        headers="keys",
+                        tablefmt="outline",
+                        showindex=False,
+                    )
+                )
 
             # Create subplot
             fig, axs = plt.subplots(2, 1, figsize=(7, 8))

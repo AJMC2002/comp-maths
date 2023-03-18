@@ -114,14 +114,13 @@ fn R(n: &u32, [a, b]: &[f64; 2], x: &f64) -> Result<f64, String> {
         return Err("B O I, 'a' is strictly less than 'b'.".to_string());
     }
 
-    let mut r = match n_th_derivative(*n + 1, x) {
-        Ok(it) => it.abs(),
-        Err(err) => return Err(err),
-    };
+    let mut r = n_th_derivative(*n + 1, x)?.abs();
+
     for k in 1..=*n + 1 {
         r *= *b - *a;
         r /= k as f64;
     }
+
     Ok(r)
 }
 
@@ -134,13 +133,9 @@ fn n_th_derivative(n: u32, x: &f64) -> Result<f64, String> {
     // Consider log(x) = ln(x)/ln(10)
     let mut result = 1.0_f64 / 10.0_f64.ln();
     // n-th derivative of ln(x)=(n-1)!(-1)^(n-1)/x^n
-    // We get the absolute value
-    if n == 1 {
-        result /= *x;
-    } else {
-        for k in 1..(n) {
-            result *= k as f64 / *x;
-        }
+    result /= *x;
+    for k in 1..n {
+        result *= k as f64 / *x;
     }
     // Add sign
     if n % 2 == 0 {
