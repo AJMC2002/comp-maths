@@ -1,6 +1,6 @@
 import os
 import shutil
-from typing import Callable, Literal, Union
+from typing import Callable
 import numpy as np
 from numpy.polynomial.polynomial import Polynomial
 from scipy.interpolate import lagrange
@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 _OUT_DIR = "output/"
 
-_DRAW_SAMPLE_SIZE = 500  # for np.linspace to draw functions
+_DRAW_SAMPLE_SIZE = 1000  # for np.linspace to draw functions
 
 _A4SIZE = np.array([4960, 7016])
 
@@ -61,13 +61,13 @@ def plot_err(
     fun_name: str,
     **kwargs,
 ):
-    ax.hlines(np.max(delta_x), a, b, "k", "dashed")
-    ax.plot(x, delta_x, kwargs.get("color", "b") + "-")
-    ax.plot(nodes, delta_nodes, kwargs.get("color", "b") + "o")
+    ax.hlines(np.max(delta_x * 100), a, b, "k", "dashed")
+    ax.plot(x, delta_x * 100, kwargs.get("color", "b") + "-")
+    ax.plot(nodes, delta_nodes * 100, kwargs.get("color", "b") + "o")
 
     ax.set_title(f"$n$ = {n}")
     ax.set_xlabel("$x$")
-    ax.set_ylabel(fun_name)
+    ax.set_ylabel("Относ. погрешность (%)")
 
 
 def make_fun_graphs(
@@ -142,8 +142,8 @@ def make_err_graphs(
         # Make interpolation with equidistant nodes
         nodes = equidistant_nodes(a, b, n)
         poly = lagrange_poly(nodes, fun)
-        delta_x = np.abs(fun(x) - poly(x))
-        delta_nodes = np.abs(fun(nodes) - poly(nodes))  # should be 0
+        delta_x = np.abs((fun(x) - poly(x)) / fun(x))
+        delta_nodes = np.abs((fun(nodes) - poly(nodes)) / fun(nodes))
         plot_err(
             ax_l,
             a,
@@ -159,8 +159,8 @@ def make_err_graphs(
         # Make interpolation with Chebyshev nodes
         nodes = chebyshev_nodes(a, b, n)
         poly = lagrange_poly(nodes, fun)
-        delta_x = np.abs(fun(x) - poly(x))
-        delta_nodes = np.abs(fun(nodes) - poly(nodes))  # should be 0
+        delta_x = np.abs((fun(x) - poly(x)) / fun(x))
+        delta_nodes = np.abs((fun(nodes) - poly(nodes)) / fun(nodes))
         plot_err(
             ax_r,
             a,
@@ -213,7 +213,7 @@ def main(debug: bool = False):
     n_values: list = [5, 10, 15, 25]
     functions: dict = {
         "$\\ln(x^2+2)$": lambda x: np.log(x**2 + 2),
-        "round($\\sin(x)$)": lambda x: np.round(np.sin(x)),
+        "round($\\sin(x)+2$)": lambda x: np.round(np.sin(x) + 2),
     }
 
     for fun_name, fun in functions.items():
