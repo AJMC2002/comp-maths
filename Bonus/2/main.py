@@ -178,7 +178,7 @@ def make_err_graphs(
     non_tex_fun_name = fun_name.translate(str.maketrans("", "", "$\\"))
 
     fig.suptitle(
-        "Абс. погрешность интерполяции "
+        "Относ. погрешность интерполяции "
         + non_tex_fun_name
         + "\n"
         + "(синий для равноудаленных узлов, красный для узлов Чебышева)",
