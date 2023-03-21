@@ -6,7 +6,6 @@
 
 Do a converging and diverging interpolation.
 
-
 ## Approach
 
 y = ln(x^2+2) and y = round(sin(x)+2) were the functions chosen.
@@ -15,7 +14,7 @@ Equally spaced points can produce diverging Lagrange interpolating polynomials (
 
 Also, the relative difference is graphed in order to evidence the effectiveness of using Chebyshev nodes and a way to mitigate error when interpolating with Lagrange's polynomial.
 
-## Results
+## Results (see `output`)
 
 Converging interpolation (y = ln(x^2+2)):
 
