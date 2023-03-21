@@ -14,6 +14,16 @@ Equally spaced points can produce diverging Lagrange interpolating polynomials (
 
 Also, the relative difference is graphed in order to evidence the effectiveness of using Chebyshev nodes and a way to mitigate error when interpolating with Lagrange's polynomial.
 
+The interval and n values used, along with the functions are defined in the code as follows (function names are defined using LaTeX):
+
+    a = -1.5
+    b = 1.5
+    n_values: list = [5, 10, 15, 25]
+    functions: dict = {
+        "$\\ln(x^2+2)$": lambda x: np.log(x**2 + 2),
+        "round($\\sin(x)+2$)": lambda x: np.round(np.sin(x) + 2),
+    }
+
 ## Results (see `output`)
 
 Converging interpolation (y = ln(x^2+2)):
