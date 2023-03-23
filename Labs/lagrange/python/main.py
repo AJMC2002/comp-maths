@@ -19,7 +19,8 @@ from matplotlib import pyplot as plt
 
 def gen_data() -> None:
     """
-    Runs the rust project in ./rust/ with cargo to generate data in ./data/output/
+    Runs the rust project in ./rust/ with cargo
+    to generate data in ./data/output/
     """
     proc = subprocess.Popen(
         ["cargo", "run", "--manifest-path", "./rust/Cargo.toml"],
@@ -30,19 +31,19 @@ def gen_data() -> None:
     stdout, stderr = proc.communicate()
 
     if proc.returncode != 0:
-        raise ChildProcessError(f"Fuck you, here's an error:\n{stderr.decode()}")
+        raise ChildProcessError(
+            f"Fuck you, here's an error:\n{stderr.decode()}",
+        )
 
     print("Rust code run successfully!")
     if stdout.decode():
         print(stdout.decode())
 
 
-if __name__ == "__main__":
-    DATA_DIR: str = "./data"
+def main(data_dir: str) -> None:
+    gen_data()  # Rust checks if 'data.json' conforms to what's expected
 
-    gen_data()  # Do this first so Rust checks if 'data.json' conforms to what's expected
-
-    with open(f"{DATA_DIR}/input/data.json", "r", encoding="utf-8") as fin:
+    with open(f"{data_dir}/input/data.json", "r", encoding="utf-8") as fin:
         data = json.load(fin)
 
         # For a general plot :3
@@ -60,11 +61,15 @@ if __name__ == "__main__":
         gnral_ax_2.set_ylabel(r"$R_n$")
 
         for x in data["x_values"]:
-            df = pd.read_csv(f"{DATA_DIR}/output/x_{x}.csv")
+            df = pd.read_csv(f"{data_dir}/output/x_{x}.csv")
 
             # Pretty format the csv ;3
-            with open(f"{DATA_DIR}/output/x_{x}.txt", "w", encoding="utf-8") as f:
-                f.write(
+            with open(
+                f"{data_dir}/output/x_{x}.txt",
+                "w",
+                encoding="utf-8",
+            ) as fout:
+                fout.write(
                     tabulate(
                         df,
                         headers="keys",
@@ -94,9 +99,15 @@ if __name__ == "__main__":
 
             # Make pretty and save
             fig.subplots_adjust(hspace=0.3)
-            fig.savefig(f"{DATA_DIR}/output/x_{x}.png")
+            fig.savefig(f"{data_dir}/output/x_{x}.png")
 
         gnral_ax_1.legend()
         gnral_ax_2.legend()
 
-        gnral_fig.savefig(f"{DATA_DIR}/output/general.png")
+        gnral_fig.savefig(f"{data_dir}/output/general.png")
+
+
+if __name__ == "__main__":
+    data_dir = "./data"
+    main(data_dir)
+    print(f"Your files are in {data_dir}/output :)")
