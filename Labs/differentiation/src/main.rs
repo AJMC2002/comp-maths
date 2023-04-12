@@ -1,5 +1,5 @@
-static N: isize = 3;
 static K: isize = 2;
+static N: isize = 3;
 static M: isize = 3;
 
 static A: f64 = 0.4;
