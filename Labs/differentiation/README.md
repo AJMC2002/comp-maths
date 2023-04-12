@@ -1,4 +1,4 @@
-# _3rd Lab_: Numeric differentiation w/ Lagrange's polynomial
+# _3rd Lab_: Numerical differentiation w/ Lagrange's polynomial
 
 > ## Variant
 >
