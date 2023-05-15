@@ -1,6 +1,6 @@
 use crate::{Function, IntegralResult};
 
-pub fn simpson<F: Fn(f64) -> f64>(fun: &Function<F>) -> IntegralResult {
+pub fn simpson(fun: &Function) -> IntegralResult {
     IntegralResult::new(
         fun.h() / 6.
             * (0..fun.n)

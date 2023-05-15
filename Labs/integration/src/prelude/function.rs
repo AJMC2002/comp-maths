@@ -1,15 +1,14 @@
 use crate::factorial;
 
-#[derive(Clone)]
-pub struct Function<F: Fn(f64) -> f64> {
-    f: F,
+pub struct Function {
+    f: Box<dyn Fn(f64) -> f64>,
     a: f64,
     b: f64,
     pub n: usize,
 }
 
-impl<F: Fn(f64) -> f64> Function<F> {
-    pub fn new(f: F, a: f64, b: f64) -> Self {
+impl Function {
+    pub fn new(f: Box<dyn Fn(f64) -> f64>, a: f64, b: f64) -> Self {
         Function { f, a, b, n: 0 }
     }
 

@@ -1,6 +1,6 @@
 use crate::{Function, IntegralResult};
 
-pub fn trapezium<F: Fn(f64) -> f64>(fun: &Function<F>) -> IntegralResult {
+pub fn trapezium(fun: &Function) -> IntegralResult {
     IntegralResult::new(
         fun.h() / 2.
             * (0..fun.n)
