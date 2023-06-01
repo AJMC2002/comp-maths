@@ -40,7 +40,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut writer = Writer::from_writer(fout);
 
         // CSV header
-        writer.write_record(&["n", "AbsErr", "RelErr", "R"])?;
+        writer.write_record(["n", "AbsErr", "RelErr", "R"])?;
 
         for n in n_values.iter() {
             let f = f(x);
