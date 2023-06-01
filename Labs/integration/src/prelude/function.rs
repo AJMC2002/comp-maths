@@ -21,7 +21,7 @@ impl Function {
     }
 
     pub fn h(&self) -> f64 {
-        (self.b - self.a) / self.n as f64
+        (self.b - self.a) / (self.n - 1) as f64
     }
 
     pub fn x(&self, i: f64) -> f64 {

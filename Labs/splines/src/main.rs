@@ -1,56 +1,44 @@
+use std::error::Error;
+
 use integration::Function;
-use ndarray::{Array, Array1, Array2};
-use tridiagonal_matrix::tridiagonal_matrix_algorithm;
+use splines::{spline, spline_coeffs};
+use tabled::Tabled;
 
 const X_VALUES: [f64; 4] = [0.53, 0.43, 0.86, 0.67];
 
-fn m_coeffs(fun: &mut Function) -> Array1<f64> {
-    //Calculate mu and lambda vals beforehand
-    let mus: Array1<f64> = Array1::from_iter((1..fun.n).map(|_| fun.h() / (fun.h() + fun.h())));
-    let lambdas: Array1<f64> = 1. - &mus;
-
-    //Initialize the matrix for the system to find all m_is
-    let mut m_system: Array2<f64> = Array2::zeros((fun.n, fun.n + 1));
-    //Comply with the first restriction S'(x0)=f'(x0) and S'(xN)=f'(xN)
-    m_system[[0, 0]] = 1.;
-    m_system[[0, fun.n]] = fun.kth_der(1, 0.0);
-    m_system[[fun.n - 1, fun.n - 1]] = 1.;
-    m_system[[fun.n - 1, fun.n]] = fun.kth_der(1, fun.n as f64);
-    //Add the other coefficients (the mu & lambda arrays start from i=1 so their index is i-1)
-    for i in 1..fun.n - 1 {
-        m_system[[i, i - 1]] = mus[i - 1];
-        m_system[[i, i]] = 2.;
-        m_system[[i, i + 1]] = lambdas[i - 1];
-        m_system[[i, fun.n]] = 3.
-            * (lambdas[i - 1] * (fun.f((i + 1) as f64) - fun.f(i as f64)) / fun.h()
-                + mus[i - 1] * (fun.f(i as f64) - fun.f((i - 1) as f64)) / fun.h())
-    }
-
-    //Return the solution vector
-    tridiagonal_matrix_algorithm(&m_system)
-}
-
-fn spline_coeffs(fun: &mut Function) -> Array2<f64> {
-    //Initialize array to store all coeffs
-    let mut spline_coeffs: Array2<f64> = Array2::zeros((fun.n - 1, 4));
-
-    //Get the m coeffs function
-    let ms = m_coeffs(fun);
-
-    //Store y_i, m_i and calculate a_i and b_i
-    for i in 0..fun.n - 1 {
-        spline_coeffs[[i, 0]] = fun.f(i as f64);
-        spline_coeffs[[i, 1]] = ms[i];
-        spline_coeffs[[i, 2]] = 6. / fun.h()
-            * ((fun.f((i + 1) as f64) - fun.f(i as f64)) / fun.h() - (ms[i + 1] + 2. * ms[i]) / 3.);
-        spline_coeffs[[i, 3]] = 12. / fun.h().powi(2)
-            * ((ms[i + 1] + ms[i]) / 2. - (fun.f((i + 1) as f64) - fun.f(i as f64)) / fun.h());
-    }
-
-    spline_coeffs
-}
-
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let fun = &mut Function::new(Box::new(|x| x.powi(2) + x.log10()), 0.4, 0.9);
     fun.n = 3;
+
+    let mut tables: Vec<Vec<Row>> = (0..X_VALUES.len()).map(|_| Vec::new()).collect();
+
+    for n in [3, 5].into_iter().chain((10..=100).step_by(10)) {
+        fun.n = n;
+        let spline_coeffs = spline_coeffs(fun)?;
+        println!("{}", spline_coeffs);
+        for (idx, &x) in X_VALUES.iter().enumerate() {
+            let i = ((x - fun.a()) / fun.h()).floor();
+            println!("{} {}", i, (x - fun.a()) / fun.h());
+            let s = spline(spline_coeffs.row(i as usize).to_owned(), fun.x(i));
+
+            tables[idx].push(Row {
+                n,
+                Delta_f_n: (s(x) - fun.f((x - fun.a()) / fun.h())).abs(),
+                delta_f_n: (s(x) - fun.f((x - fun.a()) / fun.h())).abs()
+                    / fun.f((x - fun.a()) / fun.h()).abs()
+                    * 100.,
+            })
+        }
+    }
+    print!("{:?}", tables);
+
+    Ok(())
+}
+
+#[derive(Tabled, Debug)]
+#[allow(non_snake_case)]
+struct Row {
+    n: usize,
+    Delta_f_n: f64,
+    delta_f_n: f64,
 }
