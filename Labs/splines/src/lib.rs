@@ -1,10 +1,8 @@
-use std::error::Error;
-
 use integration::Function;
 use ndarray::{Array1, Array2};
 use tridiagonal_matrix::tridiagonal_matrix_algorithm;
 
-fn m_coeffs(fun: &mut Function) -> Result<Array1<f64>, Box<dyn Error>> {
+fn m_coeffs(fun: &mut Function) -> Array1<f64> {
     //Calculate mu and lambda vals beforehand
     let mus: Array1<f64> = Array1::from_iter((1..fun.n).map(|_| fun.h() / (fun.h() + fun.h())));
     let lambdas: Array1<f64> = 1. - &mus;
@@ -15,7 +13,7 @@ fn m_coeffs(fun: &mut Function) -> Result<Array1<f64>, Box<dyn Error>> {
     m_system[[0, 0]] = 1.;
     m_system[[0, fun.n]] = fun.kth_der(1, 0.0);
     m_system[[fun.n - 1, fun.n - 1]] = 1.;
-    m_system[[fun.n - 1, fun.n]] = fun.kth_der(1, fun.n as f64);
+    m_system[[fun.n - 1, fun.n]] = fun.kth_der(1, (fun.n - 1) as f64);
     //Add the other coefficients (the mu & lambda arrays start from i=1 so their index is i-1)
     for i in 1..fun.n - 1 {
         m_system[[i, i - 1]] = mus[i - 1];
@@ -27,15 +25,15 @@ fn m_coeffs(fun: &mut Function) -> Result<Array1<f64>, Box<dyn Error>> {
     }
 
     //Return the solution vector
-    Ok(tridiagonal_matrix_algorithm(&m_system))
+    tridiagonal_matrix_algorithm(&m_system)
 }
 
-pub fn spline_coeffs(fun: &mut Function) -> Result<Array2<f64>, Box<dyn Error>> {
+pub fn spline_coeffs(fun: &mut Function) -> Array2<f64> {
     //Initialize array to store all coeffs
     let mut spline_coeffs: Array2<f64> = Array2::zeros((fun.n - 1, 4));
 
     //Get the m coeffs function
-    let ms = m_coeffs(fun)?;
+    let ms = m_coeffs(fun);
 
     //Store y_i, m_i and calculate a_i and b_i
     for i in 0..fun.n - 1 {
@@ -47,7 +45,7 @@ pub fn spline_coeffs(fun: &mut Function) -> Result<Array2<f64>, Box<dyn Error>> 
             * ((ms[i + 1] + ms[i]) / 2. - (fun.f((i + 1) as f64) - fun.f(i as f64)) / fun.h());
     }
 
-    Ok(spline_coeffs)
+    spline_coeffs
 }
 
 pub fn spline(coeffs: Array1<f64>, x_i: f64) -> Box<dyn Fn(f64) -> f64> {
