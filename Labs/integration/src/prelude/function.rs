@@ -32,13 +32,13 @@ impl Function {
         (self.f)(self.x(i))
     }
 
-    pub fn kth_der(&self, k: isize, i: f64) -> f64 {
-        (2 - k + 1..=2).product::<isize>() as f64 * self.x(i).powi(2 - k as i32)
-            + (-1_f64).powi(k as i32 - 1) * factorial(k - 1) * self.x(i).powi(-k as i32)
+    pub fn kth_der(&self, k: usize, i: f64) -> f64 {
+        (2 - k as i32 + 1..=2).product::<i32>() as f64 * self.x(i).powi(2 - k as i32)
+            + (-1_f64).powi(k as i32 - 1) * factorial(k - 1) * self.x(i).powi(-(k as i32))
                 / 10_f64.ln()
     }
 
-    pub fn max_kth_der(&self, k: isize) -> f64 {
+    pub fn max_kth_der(&self, k: usize) -> f64 {
         let num = 10_000;
         let step = (self.b - self.a) / (num - 1) as f64;
         (0..self.n)
@@ -46,7 +46,7 @@ impl Function {
             .fold(0.0, |max, x| -> f64 { max.max(x.abs()) })
     }
 
-    pub fn min_kth_der(&self, k: isize) -> f64 {
+    pub fn min_kth_der(&self, k: usize) -> f64 {
         let num = 10_000;
         let step = (self.b - self.a) / (num - 1) as f64;
         (0..self.n)
