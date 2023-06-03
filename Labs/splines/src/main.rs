@@ -26,7 +26,7 @@ fn main() {
                 n,
                 Delta_f_n: (s(x) - fun.f(i)).abs(),
                 delta_f_n: (s(x) - fun.f(i)).abs() / fun.f(i).abs() * 100.,
-                R_n: fun.max_kth_der(fun.n as isize) / factorial(n as isize)
+                R_n: fun.max_kth_der(fun.n) / factorial(n)
                     * (0..=n)
                         .filter_map(|j| match j != i.floor() as usize {
                             true => Some((i.floor() - j as f64) * fun.h()),
