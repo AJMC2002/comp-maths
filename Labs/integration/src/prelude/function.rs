@@ -33,7 +33,7 @@ impl Function {
     }
 
     pub fn kth_der(&self, k: usize, i: f64) -> f64 {
-        (2 - k as i32 + 1..=2).product::<i32>() as f64 * self.x(i).powi(2 - k as i32)
+        (2 - k as i64 + 1..=2).product::<i64>() as f64 * self.x(i).powi(2 - k as i32)
             + (-1_f64).powi(k as i32 - 1) * factorial(k - 1) * self.x(i).powi(-(k as i32))
                 / 10_f64.ln()
     }
