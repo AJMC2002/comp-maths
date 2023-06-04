@@ -46,7 +46,7 @@ checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
 [[package]]
 name = "integration"
 version = "0.1.0"
-source = "git+https://github.com/AJMC2002/comp-maths/#7792cf377c11c358be234be35a419658d6a40991"
+source = "git+https://github.com/AJMC2002/comp-maths/#bf4a78aa2fa31fa9846bd73c319630ec9c67ef06"
 dependencies = [
  "rand",
  "strum",
@@ -279,7 +279,7 @@ dependencies = [
 [[package]]
 name = "tridiagonal_matrix"
 version = "0.1.0"
-source = "git+https://github.com/AJMC2002/comp-maths/#7792cf377c11c358be234be35a419658d6a40991"
+source = "git+https://github.com/AJMC2002/comp-maths/#bf4a78aa2fa31fa9846bd73c319630ec9c67ef06"
 dependencies = [
  "ndarray",
  "num-traits",

@@ -1,7 +1,7 @@
-use integration::{factorial, Function};
+use integration::Function;
 use splines::{spline, spline_coeffs};
 use tabled::{
-    settings::{object::Segment, Format, Modify},
+    settings::{object::Segment, Format, Modify, Style},
     Table, Tabled,
 };
 
@@ -26,13 +26,7 @@ fn main() {
                 n,
                 Delta_f_n: (s(x) - fun.f(i)).abs(),
                 delta_f_n: (s(x) - fun.f(i)).abs() / fun.f(i).abs() * 100.,
-                R_n: fun.max_kth_der(fun.n) / factorial(n)
-                    * (0..=n)
-                        .filter_map(|j| match j != i.floor() as usize {
-                            true => Some((i.floor() - j as f64) * fun.h()),
-                            false => None,
-                        })
-                        .product::<f64>(),
+                R_n: fun.R(i).abs(),
             })
         }
     }
@@ -42,6 +36,7 @@ fn main() {
             .with(
                 Modify::new(Segment::new(1.., 1..)).with(Format::content(|x| format!("{:.15}", x))),
             )
+            .with(Style::rounded())
             .to_string();
 
         println!("*** x = {} ***", x);
