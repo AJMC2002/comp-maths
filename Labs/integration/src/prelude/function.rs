@@ -48,10 +48,31 @@ impl Function {
 
     pub fn min_kth_der(&self, k: usize) -> f64 {
         let num = 10_000;
-        let step = (self.b - self.a) / (num - 1) as f64;
+        let step = (self.n - 1) as f64 / (num - 1) as f64;
         (0..num)
             .map(|i| self.kth_der(k, i as f64 * step))
             .fold(0.0, |min, x| -> f64 { min.min(x.abs()) })
+    }
+
+    #[allow(non_snake_case)]
+    pub fn R(&self, i: f64) -> f64 {
+        let deriv_over_fact = match self.n {
+            ..=2 => self.max_kth_der(self.n) / factorial(self.n),
+            _ => {
+                let num = 10_000;
+                let step = (self.n - 1) as f64 / (num - 1) as f64;
+                (0..num)
+                    .map(|j| {
+                        self.x(j as f64 * step).powi(-(self.n as i32))
+                            / (10_f64.ln() * self.n as f64)
+                    })
+                    .fold(0.0, |max, x| -> f64 { max.max(x.abs()) })
+            }
+        };
+        let omega = (0..self.n)
+            .map(|j| (i - j as f64) * self.h())
+            .product::<f64>();
+        deriv_over_fact * omega
     }
 
     #[allow(non_snake_case)]
