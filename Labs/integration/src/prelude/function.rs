@@ -71,7 +71,8 @@ impl Function {
         };
         let omega = (0..self.n)
             .map(|j| (i - j as f64) * self.h())
-            .product::<f64>();
+            .product::<f64>()
+            .abs();
         deriv_over_fact * omega
     }
 
