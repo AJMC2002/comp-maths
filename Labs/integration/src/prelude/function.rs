@@ -43,7 +43,10 @@ impl Function {
         let step = (self.b - self.a) / (num - 1) as f64;
         (0..num)
             .map(|i| self.kth_der(k, i as f64 * step))
-            .fold(0.0, |max, x| -> f64 { max.max(x.abs()) })
+            .fold(0.0, |max, x| -> f64 {
+                println!("{}", max);
+                max.max(x.abs())
+            })
     }
 
     pub fn min_kth_der(&self, k: usize) -> f64 {
