@@ -3,7 +3,16 @@ use std::rc::Rc;
 static STEP: f64 = 1. / 1_000_000.;
 
 fn main() {
-    println!("Hello, world!");
+    let fun = Function::new(
+        Box::new(|x: f64| -> f64 { (-x).exp() + x.powi(3) - 3. }),
+        Some(Rc::new(Function::new(
+            Box::new(|x: f64| -> f64 { (-x).exp() + x.powi(3) - 3. }),
+            None,
+        ))),
+    );
+
+    println!("{}", fun.f(232. + STEP));
+    println!("{}", fun.df(232. + STEP));
 }
 
 struct Function {
