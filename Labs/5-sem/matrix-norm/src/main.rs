@@ -1,6 +1,9 @@
 use cli_table::{Style, Table, WithTitle};
-use matrix_norm::{vandermonde_matrix, Cond, FloatingType, Norm};
-use nalgebra::{Matrix2, SMatrix, SVector};
+use nalgebra::{SMatrix, SVector};
+use utils::{
+    lab1::{vandermonde_matrix, Cond, Norm},
+    FloatingType,
+};
 
 const N: usize = 25;
 
