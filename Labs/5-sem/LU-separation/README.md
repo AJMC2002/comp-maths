@@ -12,17 +12,20 @@ where *L* and *U* are triangular matrices. Lower and upper triangular matrices r
 
 This gives us the next series of expressions:
 
-> Ax = b
-> LUx = b
-> L(Ux) = b
-> Ly = b, y = Ux
+> Ax = b  
+> LUx = b  
+> L(Ux) = b  
+> Ly = b, y = Ux  
 
 We obtain a system of equations in which
 it's computationally easier to calculate each solution.
 
 From there we get that for each matrix we get the following:
 
-> u_{1j} = a_{1j} for all j
-> l_{i1} = a_{i1} / u_{11} for all i
-> u_{ij} = a_{ij} - sum from k=1 to i-1 of l_{ik} u{kj}
-> l*{ij} = 1 / u_{jj} ( a_{ij} - sum from k=1 to j-1 of l_{ik} u_{kj} )
+- u<sub>1j</sub> = a<sub>1j</sub> for all j
+
+- l<sub>i1</sub> = a<sub>i1</sub> / u<sub>11</sub> for all i
+
+- u<sub>ij</sub> = a<sub>ij</sub> - Σ<sub>k=1</sub><sup>i-1</sup> l<sub>ik</sub> u<sub>kj</sub>
+
+- l<sub>ij</sub> = 1 / u<sub>jj</sub> ( a<sub>ij</sub> - Σ<sub>k=1</sub><sup>j-1</sup> l<sub>ik</sub> u<sub>kj</sub> )
