@@ -57,4 +57,68 @@ pub mod lab1 {
     }
 }
 
-pub mod lab2 {}
+pub mod lab2 {
+    use nalgebra::{
+        allocator::Allocator, DefaultAllocator, DimName, Owned, SquareMatrix, Vector, U1,
+    };
+
+    use crate::FloatingType;
+
+    type SqMatType<D> = SquareMatrix<FloatingType, D, Owned<FloatingType, D, D>>;
+
+    pub trait LUDescomposition<D>
+    where
+        D: DimName,
+        DefaultAllocator: Allocator<FloatingType, D, D>,
+    {
+        fn lu_decompose(&self) -> (SqMatType<D>, SqMatType<D>);
+    }
+
+    impl<D> LUDescomposition<D> for SqMatType<D>
+    where
+        D: DimName,
+        DefaultAllocator: Allocator<FloatingType, D, D>,
+    {
+        fn lu_decompose(&self) -> (SqMatType<D>, SqMatType<D>) {
+            let (nrows, ncols) = self.shape();
+            let mut u = SqMatType::<D>::zeros_generic(D::name(), D::name());
+            let mut l = SqMatType::<D>::identity_generic(D::name(), D::name());
+            (0..ncols).for_each(|j| u[(0, j)] = self[(0, j)]);
+            (0..nrows).for_each(|i| l[(i, 0)] = self[(i, 0)] / u[(0, 0)]);
+            (1..nrows).for_each(|i| {
+                (1..ncols).for_each(|j| match i <= j {
+                    true => {
+                        u[(i, j)] = self[(i, j)]
+                            - (0..=i - 1)
+                                .map(|k| l[(i, k)] * u[(k, j)])
+                                .sum::<FloatingType>()
+                    }
+                    false => {
+                        l[(i, j)] = 1 as FloatingType / u[(j, j)]
+                            * (self[(i, j)]
+                                - (0..=j - 1)
+                                    .map(|k| l[(i, k)] * u[(k, j)])
+                                    .sum::<FloatingType>())
+                    }
+                })
+            });
+            (l, u)
+        }
+    }
+
+    ///Uses the LU Decomposition method
+    pub fn solve_linear_system<D>(
+        a: &SqMatType<D>,
+        b: &Vector<FloatingType, D, Owned<FloatingType, D, U1>>,
+    ) -> Vector<FloatingType, D, Owned<FloatingType, D, U1>>
+    where
+        D: DimName,
+        DefaultAllocator: Allocator<FloatingType, D, D>,
+        DefaultAllocator: Allocator<FloatingType, D, U1>,
+    {
+        let (l, u) = a.lu_decompose();
+        let y = l.try_inverse().expect("Could not invert matrix") * b;
+        let x = u.try_inverse().expect("Could not invert matrix") * y;
+        x
+    }
+}
