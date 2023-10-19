@@ -62,7 +62,7 @@ pub mod lab1 {
 }
 
 pub mod lab2 {
-    use na::{allocator::Allocator, DefaultAllocator, DimName, Owned, SquareMatrix, Vector, U1};
+    use na::{allocator::Allocator, DefaultAllocator, DimName, Owned, Vector, U1};
 
     use crate::{FloatingType, SqMatType};
 
@@ -123,8 +123,8 @@ pub mod lab2 {
     }
 
     pub fn test_accuracy<D>(
-        x: Vector<FloatingType, D, Owned<FloatingType, D, U1>>,
         x_calc: Vector<FloatingType, D, Owned<FloatingType, D, U1>>,
+        x: Vector<FloatingType, D, Owned<FloatingType, D, U1>>,
     ) where
         D: DimName,
         DefaultAllocator: Allocator<FloatingType, D, D> + Allocator<FloatingType, D, U1>,

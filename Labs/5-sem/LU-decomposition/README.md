@@ -34,7 +34,7 @@ From there we get that for each matrix we get the following:
 
 ### Tests
 
-```
+```rust
 x =
   ┌          ┐
   │  1.34025 │
@@ -128,7 +128,7 @@ x_calc =
 
 ### Solutions
 
-```
+```rust
 a =
   ┌                   ┐
   │ 13.14 -2.12  1.17 │
