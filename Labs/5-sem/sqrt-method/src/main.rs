@@ -2,7 +2,6 @@ use nalgebra::{matrix, vector};
 use utils::lab2::test_accuracy;
 use utils::lab3::solve_linear_system;
 
-#[allow(clippy::approx_constant)]
 fn main() {
     do_tests();
     solve_systems();

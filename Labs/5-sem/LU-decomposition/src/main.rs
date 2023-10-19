@@ -1,7 +1,6 @@
 use nalgebra::{matrix, vector};
 use utils::lab2::{solve_linear_system, test_accuracy};
 
-#[allow(clippy::approx_constant)]
 fn main() {
     do_tests();
     solve_systems();
@@ -69,6 +68,7 @@ fn do_tests() {
 }
 
 //Part 2
+#[allow(clippy::approx_constant)]
 fn solve_systems() {
     let a = matrix![
     13.14,-2.12,1.17;
