@@ -1,6 +1,10 @@
+use na::{Owned, SquareMatrix};
+
 extern crate nalgebra as na;
 
 pub type FloatingType = f64;
+
+type SqMatType<D> = SquareMatrix<FloatingType, D, Owned<FloatingType, D, D>>;
 
 pub mod lab1 {
     use crate::FloatingType;
@@ -58,13 +62,9 @@ pub mod lab1 {
 }
 
 pub mod lab2 {
-    use nalgebra::{
-        allocator::Allocator, DefaultAllocator, DimName, Owned, SquareMatrix, Vector, U1,
-    };
+    use na::{allocator::Allocator, DefaultAllocator, DimName, Owned, SquareMatrix, Vector, U1};
 
-    use crate::FloatingType;
-
-    type SqMatType<D> = SquareMatrix<FloatingType, D, Owned<FloatingType, D, D>>;
+    use crate::{FloatingType, SqMatType};
 
     pub trait LUDescomposition<D>
     where
@@ -123,19 +123,78 @@ pub mod lab2 {
     }
 
     pub fn test_accuracy<D>(
-        a: SqMatType<D>,
-        b: Vector<FloatingType, D, Owned<FloatingType, D, U1>>,
         x: Vector<FloatingType, D, Owned<FloatingType, D, U1>>,
+        x_calc: Vector<FloatingType, D, Owned<FloatingType, D, U1>>,
     ) where
         D: DimName,
         DefaultAllocator: Allocator<FloatingType, D, D> + Allocator<FloatingType, D, U1>,
     {
-        let x_calc = solve_linear_system(&a, &b);
         let diff = (&x - &x_calc).norm();
-
         println!("\n* * * * * *\n");
         println!("x = {}\nx_calc = {}\n||x - x_calc|| = {}", x, x_calc, diff);
     }
 }
 
-pub mod lab3 {}
+pub mod lab3 {
+    use na::{allocator::Allocator, DefaultAllocator, DimName};
+    use nalgebra::{Owned, Vector, U1};
+
+    use crate::{FloatingType, SqMatType};
+
+    pub trait UDescomposition<D>
+    where
+        D: DimName,
+        DefaultAllocator: Allocator<FloatingType, D, D>,
+    {
+        fn u_decompose(&self) -> SqMatType<D>;
+    }
+
+    impl<D> UDescomposition<D> for SqMatType<D>
+    where
+        D: DimName,
+        DefaultAllocator: Allocator<FloatingType, D, D>,
+    {
+        fn u_decompose(&self) -> SqMatType<D> {
+            let (nrows, ncols) = self.shape();
+            let mut u = SqMatType::<D>::zeros_generic(D::name(), D::name());
+            u[(0, 0)] = self[(0, 0)].sqrt();
+            (1..ncols).for_each(|j| u[(0, j)] = self[(0, j)] / u[(0, 0)]);
+            (1..nrows).for_each(|i| {
+                u[(i, i)] = (self[(i, i)]
+                    - (0..=i - 1).map(|k| u[(k, i)].powi(2)).sum::<FloatingType>())
+                .sqrt()
+            });
+            (1..nrows).for_each(|i| {
+                (1..ncols).for_each(|j| {
+                    if i < j {
+                        u[(i, j)] = (self[(i, j)]
+                            - (0..=i - 1)
+                                .map(|k| u[(k, i)] * u[(k, j)])
+                                .sum::<FloatingType>())
+                            / u[(i, i)]
+                    }
+                })
+            });
+            u
+        }
+    }
+    ///Uses the U Decomposition method
+    pub fn solve_linear_system<D>(
+        a: &SqMatType<D>,
+        b: &Vector<FloatingType, D, Owned<FloatingType, D, U1>>,
+    ) -> Vector<FloatingType, D, Owned<FloatingType, D, U1>>
+    where
+        D: DimName,
+        DefaultAllocator: Allocator<FloatingType, D, D>,
+        DefaultAllocator: Allocator<FloatingType, D, U1>,
+    {
+        let u = a.u_decompose();
+        let y = u
+            .transpose()
+            .try_inverse()
+            .expect("Could not invert matrix")
+            * b;
+        let x = u.try_inverse().expect("Could not invert matrix") * y;
+        x
+    }
+}
