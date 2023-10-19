@@ -121,4 +121,19 @@ pub mod lab2 {
         let x = u.try_inverse().expect("Could not invert matrix") * y;
         x
     }
+
+    pub fn test_accuracy<D>(
+        a: SqMatType,
+        b: Vector<FloatingType, D, Owned<FloatingType, D, U1>>,
+        x: Vector<FloatingType, D, Owned<FloatingType, D, U1>>,
+    ) where
+        D: DimName,
+        DefaultAllocator: Allocator<FloatingType, D, D> + Allocator<FloatingType, D, U1>,
+    {
+        let x_calc = solve_linear_system(&a, &b);
+        let diff = (&x - &x_calc).norm();
+
+        println!("\n* * * * * *\n");
+        println!("x = {}\nx_calc = {}\n||x - x_calc|| = {}", x, x_calc, diff);
+    }
 }
