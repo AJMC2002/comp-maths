@@ -123,7 +123,7 @@ pub mod lab2 {
     }
 
     pub fn test_accuracy<D>(
-        a: SqMatType,
+        a: SqMatType<D>,
         b: Vector<FloatingType, D, Owned<FloatingType, D, U1>>,
         x: Vector<FloatingType, D, Owned<FloatingType, D, U1>>,
     ) where
@@ -137,3 +137,5 @@ pub mod lab2 {
         println!("x = {}\nx_calc = {}\n||x - x_calc|| = {}", x, x_calc, diff);
     }
 }
+
+pub mod lab3 {}

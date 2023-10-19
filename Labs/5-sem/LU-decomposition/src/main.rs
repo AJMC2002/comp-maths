@@ -1,11 +1,5 @@
-use nalgebra::{
-    allocator::Allocator, matrix, vector, DefaultAllocator, DimName, Owned, SquareMatrix, Vector,
-    U1,
-};
-use utils::{
-    lab2::{solve_linear_system, test_accuracy},
-    FloatingType,
-};
+use nalgebra::{matrix, vector};
+use utils::lab2::{solve_linear_system, test_accuracy};
 
 #[allow(clippy::approx_constant)]
 fn main() {
