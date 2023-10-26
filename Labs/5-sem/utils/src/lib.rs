@@ -1,14 +1,15 @@
-use na::{Owned, SquareMatrix};
-
-extern crate nalgebra as na;
+use nalgebra::{Owned, SquareMatrix, Vector};
 
 pub type FloatingType = f64;
 
-type SqMatType<D> = SquareMatrix<FloatingType, D, Owned<FloatingType, D, D>>;
+type __SquareMatrix<D, S = Owned<FloatingType, D, D>> = SquareMatrix<FloatingType, D, S>;
+type __Vector<D, S = Owned<FloatingType, D>> = Vector<FloatingType, D, S>;
 
 pub mod lab1 {
     use crate::FloatingType;
-    use na::{allocator::Allocator, DMatrix, DefaultAllocator, Dim, Matrix, SquareMatrix, Storage};
+    use nalgebra::{
+        allocator::Allocator, DMatrix, DefaultAllocator, Dim, Matrix, SquareMatrix, Storage,
+    };
 
     pub trait Norm {
         fn custom_norm(&self) -> FloatingType;
@@ -62,27 +63,26 @@ pub mod lab1 {
 }
 
 pub mod lab2 {
-    use na::{allocator::Allocator, DefaultAllocator, DimName, Owned, Vector, U1};
-
-    use crate::{FloatingType, SqMatType};
+    use crate::{FloatingType, __SquareMatrix};
+    use nalgebra::{allocator::Allocator, DefaultAllocator, DimName, Owned, Vector, U1};
 
     pub trait LUDescomposition<D>
     where
         D: DimName,
         DefaultAllocator: Allocator<FloatingType, D, D>,
     {
-        fn lu_decompose(&self) -> (SqMatType<D>, SqMatType<D>);
+        fn lu_decompose(&self) -> (__SquareMatrix<D>, __SquareMatrix<D>);
     }
 
-    impl<D> LUDescomposition<D> for SqMatType<D>
+    impl<D> LUDescomposition<D> for __SquareMatrix<D>
     where
         D: DimName,
         DefaultAllocator: Allocator<FloatingType, D, D>,
     {
-        fn lu_decompose(&self) -> (SqMatType<D>, SqMatType<D>) {
+        fn lu_decompose(&self) -> (__SquareMatrix<D>, __SquareMatrix<D>) {
             let (nrows, ncols) = self.shape();
-            let mut u = SqMatType::<D>::zeros_generic(D::name(), D::name());
-            let mut l = SqMatType::<D>::identity_generic(D::name(), D::name());
+            let mut u = __SquareMatrix::<D>::zeros_generic(D::name(), D::name());
+            let mut l = __SquareMatrix::<D>::identity_generic(D::name(), D::name());
             (0..ncols).for_each(|j| u[(0, j)] = self[(0, j)]);
             (0..nrows).for_each(|i| l[(i, 0)] = self[(i, 0)] / u[(0, 0)]);
             (1..nrows).for_each(|i| {
@@ -108,7 +108,7 @@ pub mod lab2 {
 
     ///Uses the LU Decomposition method
     pub fn solve_linear_system<D>(
-        a: &SqMatType<D>,
+        a: &__SquareMatrix<D>,
         b: &Vector<FloatingType, D, Owned<FloatingType, D, U1>>,
     ) -> Vector<FloatingType, D, Owned<FloatingType, D, U1>>
     where
@@ -136,27 +136,21 @@ pub mod lab2 {
 }
 
 pub mod lab3 {
-    use na::{allocator::Allocator, DefaultAllocator, DimName};
-    use nalgebra::{Owned, Vector, U1};
+    use crate::{FloatingType, __SquareMatrix, __Vector};
+    use nalgebra::{allocator::Allocator, DefaultAllocator, DimName};
 
-    use crate::{FloatingType, SqMatType};
-
-    pub trait UDescomposition<D>
-    where
-        D: DimName,
-        DefaultAllocator: Allocator<FloatingType, D, D>,
-    {
-        fn u_decompose(&self) -> SqMatType<D>;
+    pub trait UDescomposition {
+        fn u_decompose(&self) -> Self;
     }
 
-    impl<D> UDescomposition<D> for SqMatType<D>
+    impl<D> UDescomposition for __SquareMatrix<D>
     where
         D: DimName,
         DefaultAllocator: Allocator<FloatingType, D, D>,
     {
-        fn u_decompose(&self) -> SqMatType<D> {
+        fn u_decompose(&self) -> __SquareMatrix<D> {
             let (nrows, ncols) = self.shape();
-            let mut u = SqMatType::<D>::zeros_generic(D::name(), D::name());
+            let mut u = __SquareMatrix::<D>::zeros_generic(D::name(), D::name());
             u[(0, 0)] = self[(0, 0)].sqrt();
             (1..ncols).for_each(|j| u[(0, j)] = self[(0, j)] / u[(0, 0)]);
             (1..nrows).for_each(|i| {
@@ -179,14 +173,11 @@ pub mod lab3 {
         }
     }
     ///Uses the U Decomposition method
-    pub fn solve_linear_system<D>(
-        a: &SqMatType<D>,
-        b: &Vector<FloatingType, D, Owned<FloatingType, D, U1>>,
-    ) -> Vector<FloatingType, D, Owned<FloatingType, D, U1>>
+    pub fn solve_linear_system<D>(a: &__SquareMatrix<D>, b: &__Vector<D>) -> __Vector<D>
     where
         D: DimName,
         DefaultAllocator: Allocator<FloatingType, D, D>,
-        DefaultAllocator: Allocator<FloatingType, D, U1>,
+        DefaultAllocator: Allocator<FloatingType, D>,
     {
         let u = a.u_decompose();
         let y = u
@@ -195,6 +186,121 @@ pub mod lab3 {
             .expect("Could not invert matrix")
             * b;
         let x = u.try_inverse().expect("Could not invert matrix") * y;
+        x
+    }
+}
+
+pub mod lab4 {
+
+    use crate::FloatingType;
+    use nalgebra::{
+        allocator::Allocator, Const, DefaultAllocator, DimMin, Owned, SquareMatrix, Storage,
+        Vector, U1,
+    };
+
+    type __SquareMatrix<const N: usize, S = Owned<FloatingType, Const<N>, Const<N>>> =
+        SquareMatrix<FloatingType, Const<N>, S>;
+    type __Vector<const N: usize, S = Owned<FloatingType, Const<N>>> =
+        Vector<FloatingType, Const<N>, S>;
+
+    trait InnerProduct {
+        fn inner_product(&self, other: &Self) -> FloatingType;
+    }
+
+    impl<const N: usize, S> InnerProduct for __Vector<N, S>
+    where
+        S: Storage<FloatingType, Const<N>, U1>,
+        DefaultAllocator: Allocator<FloatingType, Const<N>>, // For <D, U1> vector
+        DefaultAllocator: Allocator<FloatingType, U1, Const<N>>, // For <U1, D> vector^T
+    {
+        fn inner_product(&self, other: &Self) -> FloatingType {
+            (self.transpose() * other)[(0, 0)]
+        }
+    }
+
+    trait Projection {
+        type Output;
+        fn project_on(&self, v: &Self) -> Self::Output;
+    }
+
+    impl<const N: usize, S> Projection for __Vector<N, S>
+    where
+        Self: InnerProduct,
+        S: Storage<FloatingType, Const<N>, U1>,
+        DefaultAllocator: Allocator<FloatingType, Const<N>>,
+    {
+        type Output = __Vector<N>;
+
+        fn project_on(&self, u: &Self) -> Self::Output {
+            u.inner_product(self) * u / u.inner_product(u)
+        }
+    }
+
+    pub trait QRDescomposition
+    where
+        Self: Sized,
+    {
+        fn qr_decompose(&self) -> (Self, Self);
+    }
+
+    impl<const N: usize> QRDescomposition for __SquareMatrix<N>
+    where
+        Const<N>: DimMin<Const<N>, Output = Const<N>>,
+        __Vector<N>: Projection + InnerProduct,
+        DefaultAllocator: Allocator<FloatingType, Const<N>, Const<N>>, // For <N, N> matrix
+        DefaultAllocator: Allocator<FloatingType, Const<N>>,           // For <N, 1> vector
+        DefaultAllocator: Allocator<(usize, usize), Const<N>>,         // For determinant
+    {
+        /// Uses Gram-Schmidt process to calculate the QR decomposition
+        fn qr_decompose(&self) -> (Self, Self) {
+            assert_ne!(
+                self.determinant(),
+                0 as FloatingType,
+                "Matrix provided has a rank smaller than it's dimension"
+            );
+
+            let mut q = __SquareMatrix::<N>::zeros();
+            (0..N).for_each(|i| {
+                q.set_column(
+                    i,
+                    &(self.column(i)
+                        - match i {
+                            0 => __Vector::<N>::zeros(),
+                            _ => (0..=i - 1)
+                                .map(|j| self.column(i).project_on(&q.column(j)))
+                                .sum::<__Vector<N>>(),
+                        }),
+                )
+            });
+            q.column_iter_mut().for_each(|mut c| {
+                c.normalize_mut();
+            });
+
+            let mut r = __SquareMatrix::<N>::zeros();
+            (0..N).for_each(|i| {
+                (0..N).for_each(|j| {
+                    if i <= j {
+                        r[(i, j)] = q.column(i).inner_product(&self.column(j))
+                    }
+                })
+            });
+            (q, r)
+        }
+    }
+
+    ///Uses the QR Decomposition method
+    pub fn solve_linear_system<const N: usize>(
+        a: &__SquareMatrix<N>,
+        b: &__Vector<N>,
+    ) -> __Vector<N>
+    where
+        __SquareMatrix<N>: QRDescomposition,
+        DefaultAllocator: Allocator<FloatingType, Const<N>, Const<N>>,
+        DefaultAllocator: Allocator<FloatingType, Const<N>>,
+    {
+        let (q, r) = a.qr_decompose();
+        let y = q.transpose() * b;
+        let x = r.try_inverse().expect("Could not invert matrix") * y;
         x
     }
 }
