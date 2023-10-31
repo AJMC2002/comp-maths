@@ -1,9 +1,14 @@
-use nalgebra::{Owned, SquareMatrix, Vector};
+use nalgebra::{Const, Owned, SquareMatrix, Vector};
 
 pub type FloatingType = f64;
 
-type __SquareMatrix<D, S = Owned<FloatingType, D, D>> = SquareMatrix<FloatingType, D, S>;
-type __Vector<D, S = Owned<FloatingType, D>> = Vector<FloatingType, D, S>;
+type __GenericSquareMatrix<D, S = Owned<FloatingType, D, D>> = SquareMatrix<FloatingType, D, S>;
+type __GenericVector<D, S = Owned<FloatingType, D>> = Vector<FloatingType, D, S>;
+
+type __SquareMatrix<const N: usize, S = Owned<FloatingType, Const<N>, Const<N>>> =
+    SquareMatrix<FloatingType, Const<N>, S>;
+type __Vector<const N: usize, S = Owned<FloatingType, Const<N>>> =
+    Vector<FloatingType, Const<N>, S>;
 
 pub mod lab1 {
     use crate::FloatingType;
@@ -63,7 +68,7 @@ pub mod lab1 {
 }
 
 pub mod lab2 {
-    use crate::{FloatingType, __SquareMatrix};
+    use crate::{FloatingType, __GenericSquareMatrix};
     use nalgebra::{allocator::Allocator, DefaultAllocator, DimName, Owned, Vector, U1};
 
     pub trait LUDescomposition<D>
@@ -71,18 +76,18 @@ pub mod lab2 {
         D: DimName,
         DefaultAllocator: Allocator<FloatingType, D, D>,
     {
-        fn lu_decompose(&self) -> (__SquareMatrix<D>, __SquareMatrix<D>);
+        fn lu_decompose(&self) -> (__GenericSquareMatrix<D>, __GenericSquareMatrix<D>);
     }
 
-    impl<D> LUDescomposition<D> for __SquareMatrix<D>
+    impl<D> LUDescomposition<D> for __GenericSquareMatrix<D>
     where
         D: DimName,
         DefaultAllocator: Allocator<FloatingType, D, D>,
     {
-        fn lu_decompose(&self) -> (__SquareMatrix<D>, __SquareMatrix<D>) {
+        fn lu_decompose(&self) -> (__GenericSquareMatrix<D>, __GenericSquareMatrix<D>) {
             let (nrows, ncols) = self.shape();
-            let mut u = __SquareMatrix::<D>::zeros_generic(D::name(), D::name());
-            let mut l = __SquareMatrix::<D>::identity_generic(D::name(), D::name());
+            let mut u = __GenericSquareMatrix::<D>::zeros_generic(D::name(), D::name());
+            let mut l = __GenericSquareMatrix::<D>::identity_generic(D::name(), D::name());
             (0..ncols).for_each(|j| u[(0, j)] = self[(0, j)]);
             (0..nrows).for_each(|i| l[(i, 0)] = self[(i, 0)] / u[(0, 0)]);
             (1..nrows).for_each(|i| {
@@ -108,7 +113,7 @@ pub mod lab2 {
 
     ///Uses the LU Decomposition method
     pub fn solve_linear_system<D>(
-        a: &__SquareMatrix<D>,
+        a: &__GenericSquareMatrix<D>,
         b: &Vector<FloatingType, D, Owned<FloatingType, D, U1>>,
     ) -> Vector<FloatingType, D, Owned<FloatingType, D, U1>>
     where
@@ -136,21 +141,21 @@ pub mod lab2 {
 }
 
 pub mod lab3 {
-    use crate::{FloatingType, __SquareMatrix, __Vector};
+    use crate::{FloatingType, __GenericSquareMatrix, __GenericVector};
     use nalgebra::{allocator::Allocator, DefaultAllocator, DimName};
 
     pub trait UDescomposition {
         fn u_decompose(&self) -> Self;
     }
 
-    impl<D> UDescomposition for __SquareMatrix<D>
+    impl<D> UDescomposition for __GenericSquareMatrix<D>
     where
         D: DimName,
         DefaultAllocator: Allocator<FloatingType, D, D>,
     {
-        fn u_decompose(&self) -> __SquareMatrix<D> {
+        fn u_decompose(&self) -> __GenericSquareMatrix<D> {
             let (nrows, ncols) = self.shape();
-            let mut u = __SquareMatrix::<D>::zeros_generic(D::name(), D::name());
+            let mut u = __GenericSquareMatrix::<D>::zeros_generic(D::name(), D::name());
             u[(0, 0)] = self[(0, 0)].sqrt();
             (1..ncols).for_each(|j| u[(0, j)] = self[(0, j)] / u[(0, 0)]);
             (1..nrows).for_each(|i| {
@@ -173,7 +178,10 @@ pub mod lab3 {
         }
     }
     ///Uses the U Decomposition method
-    pub fn solve_linear_system<D>(a: &__SquareMatrix<D>, b: &__Vector<D>) -> __Vector<D>
+    pub fn solve_linear_system<D>(
+        a: &__GenericSquareMatrix<D>,
+        b: &__GenericVector<D>,
+    ) -> __GenericVector<D>
     where
         D: DimName,
         DefaultAllocator: Allocator<FloatingType, D, D>,
@@ -192,16 +200,8 @@ pub mod lab3 {
 
 pub mod lab4 {
 
-    use crate::FloatingType;
-    use nalgebra::{
-        allocator::Allocator, Const, DefaultAllocator, DimMin, Owned, SquareMatrix, Storage,
-        Vector, U1,
-    };
-
-    type __SquareMatrix<const N: usize, S = Owned<FloatingType, Const<N>, Const<N>>> =
-        SquareMatrix<FloatingType, Const<N>, S>;
-    type __Vector<const N: usize, S = Owned<FloatingType, Const<N>>> =
-        Vector<FloatingType, Const<N>, S>;
+    use crate::{FloatingType, __SquareMatrix, __Vector};
+    use nalgebra::{allocator::Allocator, Const, DefaultAllocator, DimMin, Storage, U1};
 
     trait InnerProduct {
         fn inner_product(&self, other: &Self) -> FloatingType;
@@ -301,6 +301,45 @@ pub mod lab4 {
         let (q, r) = a.qr_decompose();
         let y = q.transpose() * b;
         let x = r.try_inverse().expect("Could not invert matrix") * y;
+        x
+    }
+}
+
+pub mod lab5 {
+    use crate::{FloatingType, __SquareMatrix, __Vector};
+
+    pub fn jacobi_method<const N: usize>(
+        a: &__SquareMatrix<N>,
+        b: &__Vector<N>,
+        x0: &__Vector<N>,
+        epsilon: FloatingType,
+    ) -> __Vector<N> {
+        let mut x_last = *x0;
+        let mut x = __Vector::<N>::zeros();
+        let mut k = 0;
+        loop {
+            (0..N).for_each(|i| {
+                let sigma = (0..N)
+                    .map(|j| if i != j { a[(i, j)] * x_last[j] } else { 0.0 })
+                    .sum::<FloatingType>();
+                x[i] = (b[i] - sigma) / a[(i, i)];
+            });
+            k += 1;
+            println!(
+                "x: {} diff to 0: {} | iter no.: {}",
+                x,
+                (a * x - b).norm(),
+                k
+            );
+            if (a * x - b).norm() <= epsilon {
+                break;
+            } else {
+                x_last = x
+            }
+            // if k == 4 {
+            //     break;
+            // }
+        }
         x
     }
 }
