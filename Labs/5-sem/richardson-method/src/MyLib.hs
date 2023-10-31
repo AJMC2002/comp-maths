@@ -1,4 +1,4 @@
-module MyLib (richardson) where
+module MyLib where
 
 import Linear (Metric, norm, (!*), (*^), (^+^), (^-^))
 
