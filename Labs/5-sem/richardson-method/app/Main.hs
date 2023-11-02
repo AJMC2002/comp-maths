@@ -9,5 +9,6 @@ main = do
   let b = V3 2.0 1.0 4.0
   let x0 = zero V3
   let omega = 0.2
-  let x = richardson a b x0 omega
+  let (x, k) = richardson a b x0 omega 0
   print x
+  print k
