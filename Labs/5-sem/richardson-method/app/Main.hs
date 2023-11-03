@@ -10,5 +10,5 @@ main = do
   let x0 = zero V3
   let omega = 0.2
   let (x, k) = richardson a b x0 omega 0
-  print x
-  print k
+  putStrLn ("Solution vector " ++ show x)
+  putStrLn ("Obtained in " ++ show k ++ " steps.")
