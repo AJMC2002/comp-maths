@@ -1,7 +1,8 @@
-module Main where
+module Main (main) where
 
-import MyLib (eigenvalues, eigenvaluesWithStepCount)
-import Numeric.LinearAlgebra (Matrix)
+import Data.List (sort)
+import MyLib (eigenvaluesWithStepCount)
+import Numeric.LinearAlgebra (Matrix, toList)
 import Numeric.LinearAlgebra.Data (fromLists)
 
 main :: IO ()
@@ -16,5 +17,5 @@ main =
           ]
       (k, eigenvals) = eigenvaluesWithStepCount a
    in do
-        print k
-        print eigenvals
+        putStrLn ("Eigenvalues " ++ show (sort $ toList eigenvals))
+        putStrLn ("Done in " ++ show k ++ " steps")
