@@ -1,4 +1,4 @@
-# [Лаб No4] Метод вращения
+# [Лаб No7] Метод вращения
 
 Using [Jacobi's algorithm](https://en.wikipedia.org/wiki/Jacobi_eigenvalue_algorithm) one can get the eigenvalues of a symmetric matrix, by rotating it with [Givens rotations](https://en.wikipedia.org/wiki/Givens_rotation)
 
