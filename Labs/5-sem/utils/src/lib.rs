@@ -336,9 +336,6 @@ pub mod lab5 {
             } else {
                 x_last = x
             }
-            // if k == 4 {
-            //     break;
-            // }
         }
         x
     }
