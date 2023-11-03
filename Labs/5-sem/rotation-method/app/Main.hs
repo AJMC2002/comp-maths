@@ -1,6 +1,6 @@
 module Main (main) where
 
-import Data.List (sort)
+import Data.List (reverse, sort)
 import MyLib (eigenvaluesWithStepCount)
 import Numeric.LinearAlgebra (Matrix, toList)
 import Numeric.LinearAlgebra.Data (fromLists)
@@ -17,5 +17,5 @@ main =
           ]
       (k, eigenvals) = eigenvaluesWithStepCount a
    in do
-        putStrLn ("Eigenvalues " ++ show (sort $ toList eigenvals))
+        putStrLn ("Eigenvalues " ++ show (reverse $ sort $ toList eigenvals))
         putStrLn ("Done in " ++ show k ++ " steps")
