@@ -1,0 +1,19 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    numo-linalg (0.1.7)
+      numo-narray (>= 0.9.1.4)
+    numo-narray (0.9.2.1)
+    numo-openblas (0.4.11)
+      numo-linalg (>= 0.1.4)
+
+PLATFORMS
+  x86_64-linux
+
+DEPENDENCIES
+  numo-linalg (~> 0.1.7)
+  numo-narray (~> 0.9.2)
+  numo-openblas (~> 0.4.11)
+
+BUNDLED WITH
+   2.4.21
